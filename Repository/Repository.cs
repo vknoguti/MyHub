@@ -5,16 +5,16 @@ using MyHub.Entities;
 
 namespace MyHub.Repository
 {
-    public class GenericRepository<TEntity, TKey> where TEntity : class, IEntity<TKey> where TKey : IEquatable<TKey>
+    public class Repository<TEntity, TKey> where TEntity : class, IEntity<TKey> where TKey : IEquatable<TKey>
     {
-        public ApplicationDbContext _context;
-        public DbSet<TEntity> _dbSet;
-        public GenericRepository(ApplicationDbContext context)
+        private ApplicationDbContext _context;
+        private DbSet<TEntity> _dbSet;
+        public Repository(ApplicationDbContext context)
         {
             _context = context;
             _dbSet = context.Set<TEntity>();
         }
-        public async Task<TEntity?> AddAsync(TEntity entity)
+        public async Task<TEntity?> CreateAsync(TEntity entity)
         {
             await _dbSet.AddAsync(entity);
             var created = await _context.SaveChangesAsync();

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class Document<TKey> where TKey : IEquatable<TKey>, IEntity<TKey>
+    public class Document<TKey> where TKey : IEquatable<TKey>
     {
         public TKey Id { get; set; } = default!;
 

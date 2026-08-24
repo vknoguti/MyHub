@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class Profile<TKey> where TKey : IEquatable<TKey>, IEntity<TKey>
+    public class Profile<TKey> where TKey : IEquatable<TKey>
     {
         public TKey Id { get; set; } = default!;
         public TKey UserId { get; set; } = default!;
