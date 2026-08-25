@@ -118,6 +118,7 @@ namespace MyHub.Services
                 UserName = userName
             };
         }
+    
 
         public DateTimeOffset RefreshTokenExpirationDate()
         {

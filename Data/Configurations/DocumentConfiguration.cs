@@ -10,9 +10,11 @@ namespace MyHub.Data.Configurations
         {
             builder.HasKey(t => t.Id);
 
-            builder.HasOne(t => t.User)
+            builder.HasOne(t => t.Profile)
                 .WithMany(t => t.Documents)
-                .HasForeignKey(t => t.UserId);
+                .HasForeignKey(t => t.ProfileId);
+
+            builder.Property(t => t.UploadedAt).HasDefaultValueSql("SYSDATETIMEOFFSET()");
         }
     }
 }

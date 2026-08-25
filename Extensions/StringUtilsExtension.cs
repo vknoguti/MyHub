@@ -10,14 +10,26 @@ namespace MyHub.Extensions
             {
                 return default(TKey);
             }
-
-            var converter = TypeDescriptor.GetConverter(typeof(TKey));
-            if(converter != null && converter.CanConvertTo(typeof(TKey)))
+            if (typeof(TKey) == typeof(string))
             {
-                return (TKey)converter.ConvertFromInvariantString(key)!;
+                return (TKey)(object)key;
             }
-
-            return (TKey)Convert.ChangeType(key, typeof(TKey));
+            if (typeof(TKey) == typeof(Guid))
+            {
+                var parsed = Guid.TryParse(key, out var keyParsed);
+                return parsed ? (TKey)(object)keyParsed : default(TKey);
+            }
+            if(typeof(TKey) == typeof(int))
+            {
+                var parsed = int.TryParse(key, out var keyParsed);
+                return parsed ? (TKey)(object)keyParsed : default(TKey);
+            }
+            if (typeof(TKey) == typeof(long))
+            {
+                var parsed = long.TryParse(key, out var keyParsed);
+                return parsed ? (TKey)(object)keyParsed : default(TKey);
+            }
+            return default(TKey);
         }
     }
 }

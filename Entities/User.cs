@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class User<TKey> where TKey : IEquatable<TKey>
+    public class User<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
     {
         public TKey Id { get; set; } = default!;
 
@@ -29,8 +29,5 @@ namespace MyHub.Entities
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Profile<TKey> Profile { get; set; } = default!;
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ICollection<Document<TKey>>? Documents { get; set;  }
     }
 }

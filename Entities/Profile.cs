@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class Profile<TKey> where TKey : IEquatable<TKey>
+    public class Profile<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
     {
         public TKey Id { get; set; } = default!;
         public TKey UserId { get; set; } = default!;
@@ -16,8 +16,10 @@ namespace MyHub.Entities
         [Column(TypeName = "nvarchar(50)")]
         public string? PhoneNumber { get; set; }
 
-        public DateTime? BirthDate { get; set; }
+        public DateTimeOffset? BirthDate { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ICollection<Document<TKey>>? Documents { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public User<TKey> User { get; set; } = default!;
