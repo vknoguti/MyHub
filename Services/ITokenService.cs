@@ -6,12 +6,12 @@ namespace MyHub.Services
 {
     public interface ITokenService
     {
-        string GenerateAccessToken(ClaimsUserDTO<Guid> claims);
+        string GenerateAccessToken(ClaimsUserDTO claims);
         string GenerateRefreshToken();
 
         ClaimsPrincipal? GetClaimsPrincipal(string? token);
 
-        ClaimsUserDTO<TKey>? GetClaimsUserDTO<TKey>(ClaimsPrincipal claims);
+        ClaimsUserDTO? GetClaimsUserDTO(ClaimsPrincipal claims);
 
         DateTimeOffset AccessTokenExpirationDate();
         DateTimeOffset RefreshTokenExpirationDate();

@@ -4,9 +4,9 @@ using MyHub.Entities;
 
 namespace MyHub.Data.Configurations
 {
-    public class DocumentConfiguration : IEntityTypeConfiguration<Document<Guid>>, IEntityDataBaseConfiguration
+    public class DocumentConfiguration : IEntityTypeConfiguration<Document>, IEntityDataBaseConfiguration
     {
-        public void Configure(EntityTypeBuilder<Document<Guid>> builder)
+        public void Configure(EntityTypeBuilder<Document> builder)
         {
             builder.HasKey(t => t.Id);
 

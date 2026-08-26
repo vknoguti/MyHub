@@ -4,9 +4,9 @@ namespace MyHub.DTOs.Mappings
 {
     public static class ProfileDTOMappingExtensions
     {
-        public static Profile<TKey>? ToProfile<TKey>(this RegisterProfileDTO<TKey> registerProfileDTO) where TKey : IEquatable<TKey>
+        public static Profile? ToProfile(this RegisterProfileDTO registerProfileDTO) 
         {
-            return new Profile<TKey>
+            return new Profile
             {
                 UserId = registerProfileDTO.UserId,
                 BirthDate = registerProfileDTO.BirthDate,
@@ -15,10 +15,9 @@ namespace MyHub.DTOs.Mappings
             };
         }
 
-        public static RegisterProfileDTO<TKey>? ToRegisterProfileDTO<TKey>(this Profile<TKey> profile)
-            where TKey: IEquatable<TKey>
+        public static RegisterProfileDTO? ToRegisterProfileDTO(this Profile profile)
         {
-            return new RegisterProfileDTO<TKey>
+            return new RegisterProfileDTO
             {
                 UserId = profile.UserId,
                 BirthDate = profile.BirthDate,

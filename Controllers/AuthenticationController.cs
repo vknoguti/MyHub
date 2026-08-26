@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyHub.Data;
 using MyHub.DTOs;
+using MyHub.DTOs.Authentication;
 using MyHub.Enums;
 using MyHub.Services;
 
@@ -81,7 +82,7 @@ namespace MyHub.Controllers
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
             }
 
-            var registerResponse = await _authService.Register<Guid>(registerUser);
+            var registerResponse = await _authService.Register(registerUser);
             if(registerResponse.StatusCode == AppStatus.UsernameAlreadyExists)
             {
                 return BadRequest(registerResponse);
@@ -134,6 +135,37 @@ namespace MyHub.Controllers
                     SameSite = SameSiteMode.Strict
                 });
             return Ok(loginResponse);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogOut()
+        {
+            Request.Cookies.TryGetValue(nameof(TokenDTO.AccessToken), out var accessToken);
+            var claims = _tokenService.GetClaimsPrincipal(accessToken);
+            if (claims is null)
+            {
+                //ADICIONAR O STATUS CODE CERTO DEPOIS
+                return StatusCode(StatusCodes.Status401Unauthorized);
+            }
+
+            Response.Cookies.Delete(nameof(TokenDTO.AccessToken));
+            Response.Cookies.Delete(nameof(TokenDTO.RefreshToken));
+
+            var claimsUser = _tokenService.GetClaimsUserDTO(claims);
+            if (claimsUser is null)
+            {
+                return BadRequest();
+            }
+
+            var response = await _authService.LogOut(claimsUser.IdUser);
+            if(response.StatusCode == AppStatus.UserNotFound ||
+                response.StatusCode == AppStatus.UserAlreadyLoggedOut ||
+                response.StatusCode == AppStatus.FailedDatabaseUpdate)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
         }
     }
 }

@@ -42,7 +42,6 @@ namespace MyHub.Enums
 
 
 
-
         [Description("Refresh Token is null")]
         NullRefreshToken,
 
@@ -54,6 +53,17 @@ namespace MyHub.Enums
 
         [Description("Claims not found in principals")]
         PrincipalsNotFound,
+
+
+
+        [Description("User already logged out")]
+        UserAlreadyLoggedOut,
+        
+        [Description("Failed to update database")]
+        FailedDatabaseUpdate,
+
+        [Description("LogOut successful")]
+        SuccessLogOut,
 
     }
 }

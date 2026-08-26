@@ -6,41 +6,42 @@ using MyHub.Enums;
 using MyHub.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using MyHub.DTOs.Authentication;
+using MyHub.DTOs.AuthenticationService;
+
 
 namespace MyHub.Services
 {
     public class AuthenticationService : IAuthenticationService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPasswordHasher<User<Guid>> _passwordHasher;
+        private readonly IPasswordHasher<User> _passwordHasher;
         private readonly ITokenService _tokenService;
-        public AuthenticationService(ApplicationDbContext context, IPasswordHasher<User<Guid>> passwordHasher, ITokenService tokenService)
+        public AuthenticationService(ApplicationDbContext context, IPasswordHasher<User> passwordHasher, ITokenService tokenService)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _tokenService = tokenService;
         }
 
-        public async Task<BaseResponse1<RegisterResponseDTO<TKey>>> Register<TKey>(RegisterUserDTO userRegister)
+        public async Task<BaseResponse1<RegisterResponseDTO>> Register(RegisterUserDTO userRegister)
         {
-            var registerResponse = new BaseResponse1<RegisterResponseDTO<TKey>>();
+            var registerResponse = new BaseResponse1<RegisterResponseDTO>();
             var queryUser =  _context.Users.AsQueryable().AsNoTracking();
             var userNameFound = await queryUser.AnyAsync(u => u.UserName == userRegister.UserName);
             if (userNameFound)
             {
-                return registerResponse.GenerateResponse1<RegisterResponseDTO<TKey>>(AppStatus.UsernameAlreadyExists);
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.UsernameAlreadyExists);
             } 
             
             var emailFound = await queryUser.AnyAsync(u => u.Email == userRegister.Email);
             if (emailFound)
             {
-                return registerResponse.GenerateResponse1<RegisterResponseDTO<TKey>>(AppStatus.EmailAlreadyExists);
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.EmailAlreadyExists);
             }
 
-            var userMapped = new User<Guid>();
-            userMapped = userRegister.ToUser<Guid>(_passwordHasher.HashPassword(userMapped, userRegister.Password)) ?? 
+            var userMapped = new User();
+            userMapped = userRegister.ToUser(_passwordHasher.HashPassword(userMapped, userRegister.Password)) ?? 
                 throw new ArgumentNullException(nameof(userRegister), "The mapping value was null");
 
             await _context.Users.AddAsync(userMapped);
@@ -48,10 +49,10 @@ namespace MyHub.Services
             
             if(success <= 0)
             {
-                return registerResponse.GenerateResponse1<RegisterResponseDTO<TKey>>(AppStatus.Failed);
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.Failed);
             }
 
-            return registerResponse.GenerateResponse1<RegisterResponseDTO<TKey>>(AppStatus.SuccessRegistration);
+            return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.SuccessRegistration);
         }
 
       
@@ -72,7 +73,7 @@ namespace MyHub.Services
             }
 
             var response = loginResponse.GenerateResponse1<LoginResponseDTO>(AppStatus.SuccessLogin);
-            var accessToken = _tokenService.GenerateAccessToken(targetUser.ToClaimsUser<Guid>());
+            var accessToken = _tokenService.GenerateAccessToken(targetUser.ToClaimsUser());
             var refreshToken = _tokenService.GenerateRefreshToken();
 
             //TEORICAMENTE MEXENDO NO BANCO DO REDIS
@@ -107,7 +108,7 @@ namespace MyHub.Services
                 return response.GenerateResponse1<RefreshTokenResponseDTO>(AppStatus.InvalidRefreshToken);
             }
 
-            var claimsUser = targetUser.ToClaimsUser<Guid>();
+            var claimsUser = targetUser.ToClaimsUser();
             var accessToken = _tokenService.GenerateAccessToken(claimsUser);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
@@ -134,6 +135,37 @@ namespace MyHub.Services
                     RefreshTokenExpiresAt = refreshTokenExpirationDate
                 }
             };
+            return response;
+        }
+
+        public async Task<BaseResponse1<LogOutResponseDTO>> LogOut(Guid userId)
+        {
+            var response = new BaseResponse1<LogOutResponseDTO>();
+            var toLogOut = await _context.Users.FindAsync(userId);
+            if(toLogOut is null)
+            { 
+                response.StatusCode = AppStatus.UserNotFound;
+                return response;
+            }
+
+            response.Data = new LogOutResponseDTO { UserName = toLogOut.UserName };
+            if (toLogOut.RefreshToken is null)
+            {
+                response.StatusCode = AppStatus.UserAlreadyLoggedOut;
+                return response;
+            }
+
+            toLogOut.RefreshToken = null;
+            toLogOut.RefreshTokenExpiryDate = null;
+            var updated = await _context.SaveChangesAsync();
+
+            if(updated <= 0)
+            {
+                response.StatusCode = AppStatus.FailedDatabaseUpdate;
+                return response;
+            }
+
+            response.StatusCode = AppStatus.SuccessLogOut;
             return response;
         }
     }

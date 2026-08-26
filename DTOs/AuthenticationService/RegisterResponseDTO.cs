@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.DTOs
 {
-    public class RegisterResponseDTO<TKey>
+    public class RegisterResponseDTO
     {
-        public TKey Id { get; set; } = default!;
+        public Guid Id { get; set; } = default!;
 
         public string UserName { get; set; } = null!;
 

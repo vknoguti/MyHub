@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyHub.Data;
 using MyHub.DTOs;
-using MyHub.Repository;
 using MyHub.Services;
 using System.Security.Claims;
 
@@ -11,11 +10,11 @@ namespace MyHub.Controllers
     [Route("api/[controller]")]
     public class ProfileController : ControllerBase
     {
-        public ProfileManagerService<Guid> _profileManagerService;
+        public ProfileManagerService _profileManagerService;
         public ITokenService _tokenService;
 
         public ApplicationDbContext _context;
-        public ProfileController(ProfileManagerService<Guid> profileManagerService, ApplicationDbContext context, ITokenService tokenService)
+        public ProfileController(ProfileManagerService profileManagerService, ApplicationDbContext context, ITokenService tokenService)
         {
             _profileManagerService = profileManagerService;
             _context = context;
@@ -23,7 +22,7 @@ namespace MyHub.Controllers
         }
 
         [HttpPost("register-profile")]
-        public async Task<IActionResult> CreateProfile([FromBody] RegisterProfileDTO<Guid> profileDTO)
+        public async Task<IActionResult> CreateProfile([FromBody] RegisterProfileDTO profileDTO)
         {
             Request.Cookies.TryGetValue(nameof(TokenDTO.AccessToken), out var accessToken);
             var claims = _tokenService.GetClaimsPrincipal(accessToken);
@@ -33,14 +32,12 @@ namespace MyHub.Controllers
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
-            var claimsUser = _tokenService.GetClaimsUserDTO<Guid>(claims);
+            var claimsUser = _tokenService.GetClaimsUserDTO(claims);
             if(claimsUser is null)
             {
                 return BadRequest();
             }
-            
-            var userId = claimsUser.IdUser;
-
+            profileDTO.UserId = claimsUser.IdUser;
             var profileDTOCreated = await _profileManagerService.Register(profileDTO);
             return Ok(profileDTOCreated);
         }

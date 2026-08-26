@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MyHub.DTOs
+namespace MyHub.DTOs.Authentication
 {
     public class RegisterUserDTO
     {

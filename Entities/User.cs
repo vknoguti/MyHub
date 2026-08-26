@@ -5,9 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class User<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
+    public class User
     {
-        public TKey Id { get; set; } = default!;
+        public Guid Id { get; set; } = default!;
 
         [Required]
         [Column(TypeName = "nvarchar(30)")]
@@ -28,6 +28,6 @@ namespace MyHub.Entities
         public DateTimeOffset? RefreshTokenExpiryDate { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Profile<TKey> Profile { get; set; } = default!;
+        public Profile? Profile { get; set; }
     }
 }

@@ -1,13 +1,14 @@
-﻿using MyHub.Entities;
+﻿using MyHub.DTOs.Authentication;
+using MyHub.Entities;
 
 namespace MyHub.DTOs.Mappings
 {
     public static class UserDTOMappingExtensions
     {
-        public static User<TKey>? ToUser<TKey>(this RegisterUserDTO registerUser, string passwordHash) where TKey : IEquatable<TKey>
+        public static User? ToUser(this RegisterUserDTO registerUser, string passwordHash) 
         {
             if (registerUser == null) return null;
-            var user = new User<TKey>
+            var user = new User
             {
                 UserName = registerUser.UserName,
                 PasswordHash = passwordHash,
@@ -16,9 +17,9 @@ namespace MyHub.DTOs.Mappings
             return user;
         }
     
-        public static RegisterResponseDTO<TKey>? ToRegisterDTO<TKey>(this User<TKey> user) where TKey: IEquatable<TKey>
+        public static RegisterResponseDTO? ToRegisterDTO(this User user)
         {
-            return new RegisterResponseDTO<TKey>
+            return new RegisterResponseDTO
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -26,9 +27,9 @@ namespace MyHub.DTOs.Mappings
             };
         }
 
-        public static ClaimsUserDTO<TKey> ToClaimsUser<TKey>(this User<TKey> user) where TKey : IEquatable<TKey>
+        public static ClaimsUserDTO ToClaimsUser(this User user) 
         {
-            ClaimsUserDTO<TKey> claims = new ClaimsUserDTO<TKey>
+            ClaimsUserDTO claims = new ClaimsUserDTO
             {
                 IdUser = user.Id,
                 UserName = user.UserName

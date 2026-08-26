@@ -3,8 +3,6 @@ using MyHub.Extensions;
 using MyHub.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Text.Json.Serialization;
-using MyHub.Repository;
-using MyHub.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +20,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-builder.Services.AddScoped(typeof(IProfileRepository<,>), typeof(ProfileRepository<,>));
-builder.Services.AddScoped(typeof(IUserRepository<,>), typeof(UserRepository<,>));
-
-builder.Services.AddScoped(typeof(ProfileManagerService<>));
+builder.Services.AddScoped<ProfileManagerService>();
 
 builder.Services
     .ConfigureSqlContext(builder.Configuration, builder.Environment)

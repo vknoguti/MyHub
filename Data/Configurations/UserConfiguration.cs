@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MyHub.Data.Configurations
 {
-    public class UserConfiguration : IEntityTypeConfiguration<User<Guid>>//, IEntityDatabaseConfiguration
+    public class UserConfiguration : IEntityTypeConfiguration<User>//, IEntityDatabaseConfiguration
     {
-        public void Configure(EntityTypeBuilder<User<Guid>> builder)
+        public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.HasKey(t => t.Id);
 
@@ -19,7 +19,7 @@ namespace MyHub.Data.Configurations
 
             builder.HasOne(t => t.Profile)
                 .WithOne(t => t.User)
-                .HasForeignKey<Profile<Guid>>(t => t.UserId);
+                .HasForeignKey<Profile>(t => t.UserId);
         }
     }
 }

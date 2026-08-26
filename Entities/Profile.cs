@@ -5,10 +5,10 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class Profile<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
+    public class Profile
     {
-        public TKey Id { get; set; } = default!;
-        public TKey UserId { get; set; } = default!;
+        public Guid Id { get; set; } = default!;
+        public Guid UserId { get; set; } = default!;
 
         [Column(TypeName = "nvarchar(200)")]
         public string? FullName { get; set; } = null!;
@@ -19,9 +19,9 @@ namespace MyHub.Entities
         public DateTimeOffset? BirthDate { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ICollection<Document<TKey>>? Documents { get; set; }
+        public ICollection<Document>? Documents { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public User<TKey> User { get; set; } = default!;
+        public User User { get; set; } = default!;
     }
 }

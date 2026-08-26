@@ -5,15 +5,15 @@ namespace MyHub.DTOs.Mappings
 {
     public static class ClaimsPrincipalExtension
     {
-        public static ClaimsUserDTO<TKey>? ToClaimsUserDTO<TKey>(this ClaimsPrincipal claimsPrincipal) where TKey: IEquatable<TKey>, IParsable<TKey>
+        public static ClaimsUserDTO? ToClaimsUserDTO(this ClaimsPrincipal claimsPrincipal) 
         {
             string? idUser = claimsPrincipal.FindFirstValue(MyClaimTypes.IdUser);
             string? userName = claimsPrincipal.FindFirstValue(MyClaimTypes.UserName);
             if (idUser is null || userName is null) return null;
 
-            return new ClaimsUserDTO<TKey>
+            return new ClaimsUserDTO
             {
-                IdUser = TKey.Parse(idUser, null),
+                IdUser = Guid.Parse(idUser, null),
                 UserName = userName
             };
         }

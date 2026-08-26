@@ -8,11 +8,11 @@ namespace MyHub.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        public DbSet<User<Guid>> Users { get; set; }
+        public DbSet<User> Users { get; set; }
 
-        public DbSet<Profile<Guid>> Profiles { get; set; }
+        public DbSet<Profile> Profiles { get; set; }
 
-        public DbSet<Document<Guid>> Documents { get; set; }
+        public DbSet<Document> Documents { get; set; }
 
 
         //public DbSet<Board> Boards { get; set;  }

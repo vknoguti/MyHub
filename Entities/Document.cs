@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace MyHub.Entities
 {
-    public class Document<TKey> : IEntity<TKey> where TKey : IEquatable<TKey>
+    public class Document
     {
-        public TKey Id { get; set; } = default!;
+        public Guid Id { get; set; } = default!;
 
         [Required]
-        public TKey ProfileId { get; set; } = default!;
+        public Guid ProfileId { get; set; } = default!;
 
         [Required]
         public string DocumentType { get; set; } = default!;
@@ -22,6 +22,6 @@ namespace MyHub.Entities
         public DateTimeOffset UploadedAt { get; set; } = default!;
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Profile<TKey> Profile { get; set; } = default!;
+        public Profile Profile { get; set; } = default!;
     }
 }

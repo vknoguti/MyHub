@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MyHub.DTOs
+namespace MyHub.DTOs.Authentication
 {
     public class LoginUserDTO
     {

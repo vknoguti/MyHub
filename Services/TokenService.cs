@@ -35,7 +35,7 @@ namespace MyHub.Services
             return DateTimeOffset.UtcNow.AddMinutes(_accessTokenExpiryMinutes);
         }
 
-        public string GenerateAccessToken(ClaimsUserDTO<Guid> claimsUser)
+        public string GenerateAccessToken(ClaimsUserDTO claimsUser)
         {
             var issuer = _config["JWT:Issuer"] ?? throw new InvalidOperationException("Invalid Issuer");
             var audience = _config["JWT:Audience"] ?? throw new InvalidOperationException("Invalid Audience");
@@ -106,20 +106,19 @@ namespace MyHub.Services
             return principal;
         }
 
-        public ClaimsUserDTO<TKey>? GetClaimsUserDTO<TKey>(ClaimsPrincipal claims) 
+        public ClaimsUserDTO? GetClaimsUserDTO(ClaimsPrincipal claims) 
         {
-            var idUser = claims.FindFirstValue(nameof(ClaimsUserDTO<TKey>.IdUser)).ConvertTo<TKey>();
-            var userName = claims.FindFirstValue(nameof(ClaimsUserDTO<TKey>.UserName));
-            if (idUser is null || userName is null) return null;
+            var couldParse = Guid.TryParse(claims.FindFirstValue(nameof(ClaimsUserDTO.IdUser)), out var idUser);
+            var userName = claims.FindFirstValue(nameof(ClaimsUserDTO.UserName));
+            if (!couldParse || userName is null) return null;
 
-            return new ClaimsUserDTO<TKey>
+            return new ClaimsUserDTO
             {
                 IdUser = idUser,
                 UserName = userName
             };
         }
-    
-
+   
         public DateTimeOffset RefreshTokenExpirationDate()
         {
             //return DateTimeOffset.UtcNow.AddDays((double)_refreshTokenExpiryDays);

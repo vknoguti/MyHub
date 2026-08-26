@@ -1,4 +1,4 @@
-﻿namespace MyHub.DTOs
+﻿namespace MyHub.DTOs.Authentication
 {
     public class RefreshTokenDTO
     {
