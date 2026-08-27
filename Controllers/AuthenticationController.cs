@@ -4,6 +4,7 @@ using MyHub.Data;
 using MyHub.DTOs;
 using MyHub.DTOs.Authentication;
 using MyHub.Enums;
+using MyHub.Extensions;
 using MyHub.Services;
 
 namespace MyHub.Controllers
@@ -144,8 +145,8 @@ namespace MyHub.Controllers
             var claims = _tokenService.GetClaimsPrincipal(accessToken);
             if (claims is null)
             {
-                //ADICIONAR O STATUS CODE CERTO DEPOIS
-                return StatusCode(StatusCodes.Status401Unauthorized);
+                return StatusCode(StatusCodes.Status401Unauthorized,
+                    new BaseResponse1<object>().GenerateResponse1<object>(status: AppStatus.CredentialsNotFound));
             }
 
             Response.Cookies.Delete(nameof(TokenDTO.AccessToken));
@@ -154,10 +155,14 @@ namespace MyHub.Controllers
             var claimsUser = _tokenService.GetClaimsUserDTO(claims);
             if (claimsUser is null)
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status401Unauthorized,
+                    new BaseResponse1<object>().GenerateResponse1<object>(status: AppStatus.PrincipalsNotFound));
             }
 
             var response = await _authService.LogOut(claimsUser.IdUser);
+            if(response.StatusCode == AppStatus.UserNotFound) { 
+            }
+
             if(response.StatusCode == AppStatus.UserNotFound ||
                 response.StatusCode == AppStatus.UserAlreadyLoggedOut ||
                 response.StatusCode == AppStatus.FailedDatabaseUpdate)

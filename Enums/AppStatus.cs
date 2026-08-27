@@ -51,6 +51,9 @@ namespace MyHub.Enums
         [Description("Renewed Access Token and Refresh Token")]
         SuccessRenewAccessToken,
 
+        [Description("Could not found Credentials")]
+        CredentialsNotFound,
+
         [Description("Claims not found in principals")]
         PrincipalsNotFound,
 

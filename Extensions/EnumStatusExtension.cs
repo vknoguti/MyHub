@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Reflection;
 namespace MyHub.Extensions
 {
-    public static class AuthenticationStatusExtension
+    public static class EnumStatusExtension
     {
         public static string? GetDescriptionMessage(this Enum status)
         {

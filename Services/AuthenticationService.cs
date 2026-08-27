@@ -144,15 +144,13 @@ namespace MyHub.Services
             var toLogOut = await _context.Users.FindAsync(userId);
             if(toLogOut is null)
             { 
-                response.StatusCode = AppStatus.UserNotFound;
-                return response;
+                return response.GenerateResponse1<LogOutResponseDTO>(status: AppStatus.UserNotFound);
             }
 
             response.Data = new LogOutResponseDTO { UserName = toLogOut.UserName };
             if (toLogOut.RefreshToken is null)
             {
-                response.StatusCode = AppStatus.UserAlreadyLoggedOut;
-                return response;
+                return response.GenerateResponse1<LogOutResponseDTO>(status: AppStatus.UserAlreadyLoggedOut);
             }
 
             toLogOut.RefreshToken = null;
@@ -161,12 +159,60 @@ namespace MyHub.Services
 
             if(updated <= 0)
             {
-                response.StatusCode = AppStatus.FailedDatabaseUpdate;
-                return response;
+                return response.GenerateResponse1<LogOutResponseDTO>(status: AppStatus.FailedDatabaseUpdate);
+            }
+            return response.GenerateResponse1<LogOutResponseDTO>(status: AppStatus.SuccessLogOut);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<BaseResponse1<RegisterResponseDTO>> Register(RegisterUserDTO userRegister)
+        {
+            var registerResponse = new BaseResponse1<RegisterResponseDTO>();
+            var queryUser = _context.Users.AsQueryable().AsNoTracking();
+            var userNameFound = await queryUser.AnyAsync(u => u.UserName == userRegister.UserName);
+            if (userNameFound)
+            {
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.UsernameAlreadyExists);
             }
 
-            response.StatusCode = AppStatus.SuccessLogOut;
-            return response;
+            var emailFound = await queryUser.AnyAsync(u => u.Email == userRegister.Email);
+            if (emailFound)
+            {
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.EmailAlreadyExists);
+            }
+
+            var userMapped = new User();
+            userMapped = userRegister.ToUser(_passwordHasher.HashPassword(userMapped, userRegister.Password)) ??
+                throw new ArgumentNullException(nameof(userRegister), "The mapping value was null");
+
+            await _context.Users.AddAsync(userMapped);
+            var success = await _context.SaveChangesAsync();
+
+            if (success <= 0)
+            {
+                return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.Failed);
+            }
+
+            return registerResponse.GenerateResponse1<RegisterResponseDTO>(AppStatus.SuccessRegistration);
         }
     }
 }
