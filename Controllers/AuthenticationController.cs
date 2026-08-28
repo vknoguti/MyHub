@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyHub.Data;
 using MyHub.DTOs;
 using MyHub.DTOs.Authentication;
+using MyHub.DTOs.Common;
+using MyHub.DTOs.Mappings;
 using MyHub.Enums;
-using MyHub.Extensions;
 using MyHub.Services;
+using MyHub.Services.Token;
 
 namespace MyHub.Controllers
 {
@@ -15,15 +17,16 @@ namespace MyHub.Controllers
     {
         private readonly IAuthenticationService _authService;
         private readonly ITokenService _tokenService;
-        //REMOVER DEPOIS
+        //REMOVER DEPOIS (Manutenção para testes)
         private readonly ApplicationDbContext _context;
+
         public AuthenticationController(IAuthenticationService authService, ApplicationDbContext context, ITokenService tokenService)
         {
             _authService = authService;
             _context = context;
             _tokenService = tokenService;
         }
-       
+
         [Authorize]
         [HttpGet("verify-authorization")]
         public IActionResult VerifyAuthorization()
@@ -43,36 +46,35 @@ namespace MyHub.Controllers
             var renewResponse = await _authService.RenewJWTWithRefreshToken(
                 new RefreshTokenDTO { RefreshToken = refreshToken });
 
-            if(renewResponse.StatusCode == AppStatus.NullRefreshToken
-                || renewResponse.StatusCode == AppStatus.InvalidRefreshToken)
+            if (renewResponse.Error?.Type == ErrorType.NullRefreshToken ||
+                renewResponse.Error?.Type == ErrorType.InvalidRefreshToken ||
+                !renewResponse.IsSuccess)
             {
-                return BadRequest(renewResponse);
+                return Unauthorized(ApiResponse.Fail("Sessão inválida ou expirada. Por favor, faça login novamente."));
             }
 
-            var tokenDTO = renewResponse?.Data?.TokenDTO;
-            this.Response.Cookies.Append(nameof(TokenDTO.AccessToken), tokenDTO?.AccessToken ?? string.Empty,
+            var tokenDTO = renewResponse.Value?.TokenDTO;
+            Response.Cookies.Append(nameof(TokenDTO.AccessToken), tokenDTO?.AccessToken ?? string.Empty,
                 new CookieOptions
                 {
                     Expires = tokenDTO?.AcessTokenExpiresAt,
-                    //MUDAR AQUI
                     HttpOnly = false,
                     IsEssential = true,
                     Secure = true,
-                    //MUDAR AQUI
                     SameSite = SameSiteMode.Strict
                 });
-            this.Response.Cookies.Append(nameof(TokenDTO.RefreshToken), tokenDTO?.RefreshToken ?? string.Empty,
+
+            Response.Cookies.Append(nameof(TokenDTO.RefreshToken), tokenDTO?.RefreshToken ?? string.Empty,
                 new CookieOptions
                 {
                     Expires = tokenDTO?.RefreshTokenExpiresAt,
-                    //MUDAR AQUI
                     HttpOnly = false,
                     IsEssential = true,
                     Secure = true,
-                    //MUDAR AQUI
                     SameSite = SameSiteMode.Strict
                 });
-            return Ok(renewResponse);
+
+            return Ok(ApiResponse.Ok("Token renovado com sucesso."));
         }
 
         [HttpPost("register")]
@@ -80,97 +82,107 @@ namespace MyHub.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(ApiResponse.Fail("Dados fornecidos são inválidos.", validationErrors));
             }
 
             var registerResponse = await _authService.Register(registerUser);
-            if(registerResponse.StatusCode == AppStatus.UsernameAlreadyExists)
+
+            if (registerResponse.Error?.Type == ErrorType.UsernameAlreadyExists ||
+                registerResponse.Error?.Type == ErrorType.EmailAlreadyExists)
             {
-                return BadRequest(registerResponse);
+                return Conflict(ApiResponse.Fail("Nome de usuário ou e-mail já cadastrado no sistema."));
             }
-            if(registerResponse.StatusCode == AppStatus.EmailAlreadyExists)
+
+            if (!registerResponse.IsSuccess || registerResponse.Value is null)
             {
-                return BadRequest(registerResponse);
+                return BadRequest(ApiResponse.Fail("Não foi possível concluir o cadastro. Verifique os dados e tente novamente."));
             }
-            return Ok(registerResponse);
+
+            return StatusCode(StatusCodes.Status201Created,
+                ApiResponse<RegisterResponseDTO>.Ok(registerResponse.Value, "Usuário cadastrado com sucesso."));
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO login)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage);
+
+                return BadRequest(ApiResponse.Fail("Dados de login inválidos.", validationErrors));
+            }
+
             var loginResponse = await _authService.Login(login);
-        
-            if(loginResponse.StatusCode == AppStatus.UserNotFound)
+
+            if (loginResponse.Error?.Type == ErrorType.UserNotFound ||
+                loginResponse.Error?.Type == ErrorType.InvalidPassword ||
+                loginResponse.Error?.Type == ErrorType.InvalidCredentials ||
+                !loginResponse.IsSuccess)
             {
-                return NotFound(loginResponse);
+                return Unauthorized(ApiResponse.Fail("Usuário ou senha inválidos."));
             }
 
-            if(loginResponse.StatusCode == AppStatus.InvalidCredentials)
+            var tokenDTO = loginResponse.Value?.TokenDTO;
+            if (tokenDTO is not null)
             {
-                return BadRequest(loginResponse);
+                Response.Cookies.Append(nameof(TokenDTO.AccessToken), tokenDTO.AccessToken,
+                    new CookieOptions
+                    {
+                        Expires = tokenDTO.AcessTokenExpiresAt,
+                        HttpOnly = false,
+                        IsEssential = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+
+                Response.Cookies.Append(nameof(TokenDTO.RefreshToken), tokenDTO.RefreshToken,
+                    new CookieOptions
+                    {
+                        Expires = tokenDTO.RefreshTokenExpiresAt,
+                        HttpOnly = false,
+                        IsEssential = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
             }
 
-            var tokenDTO = loginResponse?.Data?.TokenDTO;
-
-            this.Response.Cookies.Append(nameof(TokenDTO.AccessToken), tokenDTO!.AccessToken,
-                new CookieOptions
-                {
-                    Expires = tokenDTO?.AcessTokenExpiresAt,
-                    //MUDAR AQUI
-                    HttpOnly = true,
-                    IsEssential = true,
-                    Secure = true,
-                    //MUDAR AQUI
-                    SameSite = SameSiteMode.Strict
-                });
-
-            this.Response.Cookies.Append(nameof(TokenDTO.RefreshToken), tokenDTO!.RefreshToken,
-                new CookieOptions
-                {
-                    Expires = tokenDTO?.RefreshTokenExpiresAt,
-                    //MUDAR AQUI
-                    HttpOnly = true,
-                    IsEssential = true,
-                    Secure = true,
-                    //MUDAR AQUI
-                    SameSite = SameSiteMode.Strict
-                });
-            return Ok(loginResponse);
+            return Ok(ApiResponse.Ok("Login realizado com sucesso."));
         }
 
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> LogOut()
         {
             Request.Cookies.TryGetValue(nameof(TokenDTO.AccessToken), out var accessToken);
-            var claims = _tokenService.GetClaimsPrincipal(accessToken);
+            var claims = _tokenService.GetClaimsPrincipal(accessToken) ?? User;
             if (claims is null)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized,
-                    new BaseResponse1<object>().GenerateResponse1<object>(status: AppStatus.CredentialsNotFound));
+                return Unauthorized(ApiResponse.Fail("Usuário não autenticado."));
             }
 
             Response.Cookies.Delete(nameof(TokenDTO.AccessToken));
             Response.Cookies.Delete(nameof(TokenDTO.RefreshToken));
 
-            var claimsUser = _tokenService.GetClaimsUserDTO(claims);
+            var claimsUser = _tokenService.GetClaimsUserDTO(claims) ?? claims.ToClaimsUserDTO();
             if (claimsUser is null)
             {
-                return StatusCode(StatusCodes.Status401Unauthorized,
-                    new BaseResponse1<object>().GenerateResponse1<object>(status: AppStatus.PrincipalsNotFound));
+                return Unauthorized(ApiResponse.Fail("Não foi possível identificar o usuário autenticado."));
             }
 
             var response = await _authService.LogOut(claimsUser.IdUser);
-            if(response.StatusCode == AppStatus.UserNotFound) { 
-            }
 
-            if(response.StatusCode == AppStatus.UserNotFound ||
-                response.StatusCode == AppStatus.UserAlreadyLoggedOut ||
-                response.StatusCode == AppStatus.FailedDatabaseUpdate)
+            if (!response.IsSuccess)
             {
-                return BadRequest();
+                return BadRequest(ApiResponse.Fail("Não foi possível realizar o logout no momento."));
             }
 
-            return Ok();
+            return Ok(ApiResponse.Ok("Logout realizado com sucesso."));
         }
     }
 }

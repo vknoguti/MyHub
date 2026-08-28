@@ -3,6 +3,7 @@ using MyHub.Extensions;
 using MyHub.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Text.Json.Serialization;
+using MyHub.Services.Token;
 
 var builder = WebApplication.CreateBuilder(args);
 

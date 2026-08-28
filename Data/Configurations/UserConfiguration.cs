@@ -1,11 +1,11 @@
-﻿
+
 using MyHub.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace MyHub.Data.Configurations
 {
-    public class UserConfiguration : IEntityTypeConfiguration<User>//, IEntityDatabaseConfiguration
+    public class UserConfiguration : IEntityTypeConfiguration<User>, IEntityDataBaseConfiguration
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {

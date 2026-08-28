@@ -2,7 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace MyHub.Services
+namespace MyHub.Services.Token
 {
     public interface ITokenService
     {

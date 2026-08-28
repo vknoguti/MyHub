@@ -1,10 +1,11 @@
-﻿using MyHub.Entities;
-
+﻿using MyHub.DTOs.ProfileManagerService;
+using MyHub.DTOs.ProfileService;
+using MyHub.Entities;
 namespace MyHub.DTOs.Mappings
 {
     public static class ProfileDTOMappingExtensions
     {
-        public static Profile? ToProfile(this RegisterProfileDTO registerProfileDTO) 
+        public static Profile? ToProfile(this MyHub.DTOs.ProfileService.CreateProfileDTO registerProfileDTO) 
         {
             return new Profile
             {
@@ -15,14 +16,25 @@ namespace MyHub.DTOs.Mappings
             };
         }
 
-        public static RegisterProfileDTO? ToRegisterProfileDTO(this Profile profile)
+        public static ProfileResponseDTO? ToProfileResponseDTO(this Profile profile)
         {
-            return new RegisterProfileDTO
+            return new ProfileResponseDTO
             {
-                UserId = profile.UserId,
                 BirthDate = profile.BirthDate,
+                PhoneNumber = profile.PhoneNumber,
+                FullName = profile.FullName
+            };
+        }
+
+        public static ProfileResponseDetailedDTO? ToProfileResponseDetailedDTO(this Profile profile)
+        {
+            return new ProfileResponseDetailedDTO
+            {
+                BirthDate = profile.BirthDate,
+                PhoneNumber = profile.PhoneNumber,
                 FullName = profile.FullName,
-                PhoneNumber = profile.PhoneNumber
+                Id = profile.Id,
+                UserId = profile.UserId
             };
         }
     }

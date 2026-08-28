@@ -17,11 +17,10 @@ namespace MyHub.DTOs.Mappings
             return user;
         }
     
-        public static RegisterResponseDTO? ToRegisterDTO(this User user)
+        public static RegisterResponseDTO? ToRegisterResponseDTO(this User user)
         {
             return new RegisterResponseDTO
             {
-                Id = user.Id,
                 Email = user.Email,
                 UserName = user.UserName
             };
