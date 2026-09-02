@@ -20,6 +20,7 @@ namespace MyHub.DTOs.Mappings
         {
             return new ProfileResponseDTO
             {
+                Id = profile.Id,
                 BirthDate = profile.BirthDate,
                 PhoneNumber = profile.PhoneNumber,
                 FullName = profile.FullName

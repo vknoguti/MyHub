@@ -26,9 +26,9 @@ namespace MyHub.Services
             _tokenService = tokenService;
         }
 
-        public async Task<Result<RegisterResponseDTO>> Register(RegisterUserDTO userRegister)
+        public async Task<Result<RegisterUserResponseDTO>> Register(RegisterUserDTO userRegister)
         {
-            var registerResponse = new BaseResponse1<RegisterResponseDTO>();
+            var registerResponse = new BaseResponse1<RegisterUserResponseDTO>();
 
             var queryUser = _context.Users.AsQueryable().AsNoTracking();
             var userNameExists = await queryUser.AnyAsync(u => u.UserName == userRegister.UserName);
@@ -59,9 +59,9 @@ namespace MyHub.Services
         }
 
 
-        public async Task<Result<LoginResponseDTO>> Login(LoginUserDTO loginUser)
+        public async Task<Result<LoginUserResponseDTO>> Login(LoginUserDTO loginUser)
         {
-            var loginResponse = new BaseResponse1<LoginResponseDTO>();
+            var loginResponse = new BaseResponse1<LoginUserResponseDTO>();
 
             var targetUser = await _context.Users.FirstOrDefaultAsync(t => t.UserName == loginUser.UserName);
             if (targetUser is null)
@@ -84,7 +84,7 @@ namespace MyHub.Services
             targetUser.RefreshTokenExpiryDate = _tokenService.RefreshTokenExpirationDate();
             await _context.SaveChangesAsync();
 
-            var response = new LoginResponseDTO
+            var response = new LoginUserResponseDTO
             {
                 TokenDTO = new TokenDTO
                 {
@@ -96,8 +96,6 @@ namespace MyHub.Services
             };
             return response;
         }
-
-
 
         public async Task<Result<RefreshTokenResponseDTO>> RenewJWTWithRefreshToken(RefreshTokenDTO refreshTokenDTO)
         {
@@ -166,6 +164,24 @@ namespace MyHub.Services
             }
 
             return new LogOutResponseDTO { UserName = toLogOut.UserName };
+        }
+
+        public async Task<Result<DeleteUserResponseDTO>> DeleteUser(Guid userId)
+        {
+            var toDelete = await _context.Users.SingleOrDefaultAsync(t => t.Id == userId);
+            if(toDelete is null)
+            {
+                return AuthenticationErrors.UserNotFound;
+            }
+
+            _context.Users.Remove(toDelete);
+            var isRemoved = await _context.SaveChangesAsync();
+            if(isRemoved <= 0)
+            {
+                return AuthenticationErrors.FailedDatabaseUpdate;
+            }
+
+            return toDelete.ToDeleteUserResponseDTO();
         }
     }
 }

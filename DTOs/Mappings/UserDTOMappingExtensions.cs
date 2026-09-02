@@ -1,4 +1,5 @@
 ﻿using MyHub.DTOs.Authentication;
+using MyHub.DTOs.AuthenticationService;
 using MyHub.Entities;
 
 namespace MyHub.DTOs.Mappings
@@ -17,12 +18,22 @@ namespace MyHub.DTOs.Mappings
             return user;
         }
     
-        public static RegisterResponseDTO? ToRegisterResponseDTO(this User user)
+        public static RegisterUserResponseDTO? ToRegisterResponseDTO(this User user)
         {
-            return new RegisterResponseDTO
+            return new RegisterUserResponseDTO
             {
                 Email = user.Email,
                 UserName = user.UserName
+            };
+        }
+
+        public static DeleteUserResponseDTO ToDeleteUserResponseDTO(this User user)
+        {
+            return new DeleteUserResponseDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.Email
             };
         }
 

@@ -13,11 +13,13 @@ namespace MyHub.Services
         //public Task<BaseResponse1<RefreshTokenResponseDTO>> RenewJWTWithRefreshToken(RefreshTokenDTO refreshTokenDTO);
 
         //public Task<BaseResponse1<LogOutResponseDTO>> LogOut(Guid userId);
-        public Task<Result<RegisterResponseDTO>> Register(RegisterUserDTO userRegister);
-        public Task<Result<LoginResponseDTO>> Login(LoginUserDTO loginUser);
+        public Task<Result<RegisterUserResponseDTO>> Register(RegisterUserDTO userRegister);
+        public Task<Result<LoginUserResponseDTO>> Login(LoginUserDTO loginUser);
 
         public Task<Result<RefreshTokenResponseDTO>> RenewJWTWithRefreshToken(RefreshTokenDTO refreshTokenDTO);
 
         public Task<Result<LogOutResponseDTO>> LogOut(Guid userId);
+
+        public Task<Result<DeleteUserResponseDTO>> DeleteUser(Guid userId);
     }
 }

@@ -70,10 +70,9 @@ namespace MyHub.Controllers
 
         [Authorize]
         [HttpPost("get-profile")]
-        public async Task<IActionResult> GetProfile([FromBody] ProfileRefDTO profile)
+        public async Task<IActionResult> GetProfile(Guid profileId)
         {
-            Request.Cookies.TryGetValue(nameof(TokenDTO.AccessToken), out var accessToken);
-            var claims = _tokenService.GetClaimsPrincipal(accessToken) ?? User;
+            var claims = User;
             if (claims is null)
             {
                 return Unauthorized(ApiResponse.Fail("Usuário não autenticado."));
@@ -85,19 +84,44 @@ namespace MyHub.Controllers
                 return Unauthorized(ApiResponse.Fail("Não foi possível identificar o usuário autenticado."));
             }
 
-            if (claimsUser.IdUser != profile.UserId)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden,
-                    ApiResponse.Fail("Acesso não autorizado ao perfil solicitado."));
-            }
+            //if (claimsUser.IdUser != profile.UserId)
+            //{
+            //    return StatusCode(StatusCodes.Status403Forbidden,
+            //        ApiResponse.Fail("Acesso não autorizado ao perfil solicitado."));
+            //}
 
-            var response = await _profileManagerService.GetProfile(profile);
+            var response = await _profileManagerService.GetProfile(new ProfileRefDTO { Id = profileId, UserId = claimsUser.IdUser });
             if (response.Error?.Type == ErrorType.ProfileNotFound || !response.IsSuccess || response.Value is null)
             {
                 return NotFound(ApiResponse.Fail("Perfil não encontrado."));
             }
 
             return Ok(ApiResponse<ProfileResponseDetailedDTO>.Ok(response.Value, "Perfil recuperado com sucesso."));
+        }
+
+        //ADICIONAR AQUI AUTORIZAÇÃO DO TIPO ADMIN
+        [Authorize]
+        [HttpDelete("delete-profile")]
+        public async Task<IActionResult> DeleteProfile([FromQuery] Guid ProfileId)
+        {
+            var claims = User;
+            if (claims is null)
+            {
+                return Unauthorized(ApiResponse.Fail("Usuário não autenticado."));
+            }
+            
+            var response = await _profileManagerService.DeleteProfile(ProfileId);
+            if (response.Error?.Type == ErrorType.ProfileNotFound)
+            {
+                return NotFound(ApiResponse.Fail("Profile não encontrado"));
+            }
+
+            if(response.Error?.Type == ErrorType.FailedDatabaseUpdate)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse.Fail("Ocorreu um erro inesperado"));
+            }
+
+            return Ok(ApiResponse.Ok("Profile removido com sucesso"));
         }
 
         [HttpGet("list-profiles")]

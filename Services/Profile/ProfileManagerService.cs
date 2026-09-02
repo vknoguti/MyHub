@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MyHub.Data;
 using MyHub.DTOs;
@@ -58,6 +59,24 @@ namespace MyHub.Services
             }
 
             return resultProfile.ToProfileResponseDetailedDTO();
-        }     
+        }
+
+        public async Task<Result<ProfileResponseDTO>> DeleteProfile(Guid profileId)
+        {
+            var toDelete = await _dbContext.Profiles.SingleOrDefaultAsync(t => t.Id == profileId);
+            if(toDelete is null)
+            {
+                return ProfileErrors.ProfileNotFound;
+            }
+
+            _dbContext.Profiles.Remove(toDelete);
+            var isRemoved = await _dbContext.SaveChangesAsync();
+            if(isRemoved <= 0)
+            {
+                return ProfileErrors.FailedDatabaseUpdate;
+            }
+
+            return toDelete.ToProfileResponseDTO();
+        }
     }
 }

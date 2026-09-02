@@ -1,6 +1,6 @@
 ﻿namespace MyHub.DTOs
 {
-    public class LoginResponseDTO
+    public class LoginUserResponseDTO
     {
         public TokenDTO? TokenDTO { get; set; }
     }

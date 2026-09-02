@@ -3,11 +3,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace MyHub.DTOs
+namespace MyHub.DTOs.AuthenticationService
 {
-    public class RegisterResponseDTO
+    public class DeleteUserResponseDTO
     {
-        public string UserName { get; set; } = null!;
+        public Guid Id { get; set; } = default!;
+        public string UserName { get; set; } = null!;  
         public string Email { get; set; } = null!;
     }
 }
