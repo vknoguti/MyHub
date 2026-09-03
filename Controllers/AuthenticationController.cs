@@ -8,25 +8,20 @@ using MyHub.DTOs.Mappings;
 using MyHub.Entities;
 using MyHub.Enums;
 using MyHub.Services;
+using MyHub.Services.Authentication;
 using MyHub.Services.Token;
+using MyHub.Shared;
 
 namespace MyHub.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthenticationController : ControllerBase
+    public class AuthenticationController(IAuthenticationService authService, ApplicationDbContext context, ITokenService tokenService) : ControllerBase
     {
-        private readonly IAuthenticationService _authService;
-        private readonly ITokenService _tokenService;
+        private readonly IAuthenticationService _authService = authService;
+        private readonly ITokenService _tokenService = tokenService;
         //REMOVER DEPOIS (Manutenção para testes)
-        private readonly ApplicationDbContext _context;
-
-        public AuthenticationController(IAuthenticationService authService, ApplicationDbContext context, ITokenService tokenService)
-        {
-            _authService = authService;
-            _context = context;
-            _tokenService = tokenService;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         [Authorize]
         [HttpGet("verify-authorization")]
@@ -51,7 +46,7 @@ namespace MyHub.Controllers
                 renewResponse.Error?.Type == ErrorType.InvalidRefreshToken ||
                 !renewResponse.IsSuccess)
             {
-                return Unauthorized(ApiResponse.Fail("Invalid or expired session, please login in again."));
+                return Unauthorized(ApiResponse.Fail("Invalid or expired session, please log in again."));
             }
 
             var tokenDTO = renewResponse.Value?.TokenDTO;
@@ -59,7 +54,7 @@ namespace MyHub.Controllers
                 new CookieOptions
                 {
                     Expires = tokenDTO?.AcessTokenExpiresAt,
-                    HttpOnly = false,
+                    HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict
@@ -69,7 +64,7 @@ namespace MyHub.Controllers
                 new CookieOptions
                 {
                     Expires = tokenDTO?.RefreshTokenExpiresAt,
-                    HttpOnly = false,
+                    HttpOnly = true,
                     IsEssential = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict
@@ -104,7 +99,8 @@ namespace MyHub.Controllers
             }
 
             return StatusCode(StatusCodes.Status201Created,
-                ApiResponse<RegisterUserResponseDTO>.Ok(registerResponse.Value, "User registered successfully."));
+                    ApiResponse<RegisterUserResponseDTO>.Ok(registerResponse.Value!, "User registered successfully."));
+
         }
 
         [HttpPost("login")]
@@ -136,7 +132,7 @@ namespace MyHub.Controllers
                     new CookieOptions
                     {
                         Expires = tokenDTO.AcessTokenExpiresAt,
-                        HttpOnly = false,
+                        HttpOnly = true,
                         IsEssential = true,
                         Secure = true,
                         SameSite = SameSiteMode.Strict
@@ -146,7 +142,7 @@ namespace MyHub.Controllers
                     new CookieOptions
                     {
                         Expires = tokenDTO.RefreshTokenExpiresAt,
-                        HttpOnly = false,
+                        HttpOnly = true,
                         IsEssential = true,
                         Secure = true,
                         SameSite = SameSiteMode.Strict

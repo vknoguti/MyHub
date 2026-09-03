@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MyHub.Enums
+namespace MyHub.Shared
 {
     public enum ErrorType
     {
@@ -48,23 +48,12 @@ namespace MyHub.Enums
 
 
 
-        [Description("Login successful")]
-        SuccessLogin,
+
 
      
 
 
-        //[Description("Account is locked")]
-        //AccountLocked,
-        //[Description("Account was suspended")]
-        //AccountSuspended,
-        //[Description("Email is not verified")]
-        //EmailNotVerified,
 
-
-
-        [Description("Registration successful")]
-        SuccessRegistration,
 
         
 
@@ -80,8 +69,7 @@ namespace MyHub.Enums
 
 
 
-        [Description("Renewed Access Token and Refresh Token")]
-        SuccessRenewAccessToken,
+
 
         [Description("Could not found Credentials")]
         CredentialsNotFound,
@@ -93,9 +81,5 @@ namespace MyHub.Enums
 
  
 
- 
-
-        [Description("LogOut successful")]
-        SuccessLogOut
     }
 }

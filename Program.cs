@@ -4,6 +4,9 @@ using MyHub.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Text.Json.Serialization;
 using MyHub.Services.Token;
+using MyHub.Services.Authentication;
+using MyHub.Services.Profile;
+using MyHub.Services.FileStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,8 @@ builder.Services.AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddScoped<ProfileManagerService>();
+
+builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
 
 builder.Services
     .ConfigureSqlContext(builder.Configuration, builder.Environment)

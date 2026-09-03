@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using MyHub.Data;
 using MyHub.DTOs;
 using MyHub.DTOs.Mappings;
@@ -8,15 +9,11 @@ using MyHub.DTOs.ProfileService;
 using MyHub.Services.Profile;
 using MyHub.Shared;
 
-namespace MyHub.Services
+namespace MyHub.Services.Profile
 {
-    public class ProfileManagerService
+    public class ProfileManagerService(ApplicationDbContext dbContext)
     {
-        private readonly ApplicationDbContext _dbContext;
-        public ProfileManagerService(ApplicationDbContext dbContext) 
-        {
-            _dbContext = dbContext;
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext;
 
         public async Task<Result<ProfileResponseDTO>> CreateProfile(CreateProfileDTO profileRegister) 
         {
@@ -78,5 +75,20 @@ namespace MyHub.Services
 
             return toDelete.ToProfileResponseDTO();
         }
+
+        public async Task<Result<ProfileResponseDTO>> UpdateProfile(Guid profileId, ProfileUpdateDTO profileUpdateDTO)
+        {
+            var profile = await _dbContext.Profiles.FindAsync(profileId);
+            if(profile is null)
+            {
+                return ProfileErrors.ProfileNotFound;
+            }
+
+            profile.BirthDate = profileUpdateDTO.BirthDate ?? profile.BirthDate;
+            profile.PhoneNumber = profileUpdateDTO.PhoneNumber ?? profile.PhoneNumber;
+            profile.FullName = profileUpdateDTO.FullName ?? profile.FullName;
+
+            return profile.ToProfileResponseDTO();
+        } 
     }
 }

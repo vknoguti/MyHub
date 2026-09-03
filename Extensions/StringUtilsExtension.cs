@@ -8,7 +8,7 @@ namespace MyHub.Extensions
         {
             if (string.IsNullOrEmpty(key))
             {
-                return default(TKey);
+                return default;
             }
             if (typeof(TKey) == typeof(string))
             {
@@ -17,19 +17,19 @@ namespace MyHub.Extensions
             if (typeof(TKey) == typeof(Guid))
             {
                 var parsed = Guid.TryParse(key, out var keyParsed);
-                return parsed ? (TKey)(object)keyParsed : default(TKey);
+                return parsed ? (TKey)(object)keyParsed : default;
             }
             if(typeof(TKey) == typeof(int))
             {
                 var parsed = int.TryParse(key, out var keyParsed);
-                return parsed ? (TKey)(object)keyParsed : default(TKey);
+                return parsed ? (TKey)(object)keyParsed : default;
             }
             if (typeof(TKey) == typeof(long))
             {
                 var parsed = long.TryParse(key, out var keyParsed);
-                return parsed ? (TKey)(object)keyParsed : default(TKey);
+                return parsed ? (TKey)(object)keyParsed : default;
             }
-            return default(TKey);
+            return default;
         }
     }
 }

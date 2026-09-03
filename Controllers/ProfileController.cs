@@ -8,7 +8,9 @@ using MyHub.DTOs.ProfileManagerService;
 using MyHub.DTOs.ProfileService;
 using MyHub.Enums;
 using MyHub.Services;
+using MyHub.Services.Profile;
 using MyHub.Services.Token;
+using MyHub.Shared;
 using System.Security.Claims;
 
 namespace MyHub.Controllers
@@ -84,12 +86,6 @@ namespace MyHub.Controllers
                 return Unauthorized(ApiResponse.Fail("Não foi possível identificar o usuário autenticado."));
             }
 
-            //if (claimsUser.IdUser != profile.UserId)
-            //{
-            //    return StatusCode(StatusCodes.Status403Forbidden,
-            //        ApiResponse.Fail("Acesso não autorizado ao perfil solicitado."));
-            //}
-
             var response = await _profileManagerService.GetProfile(new ProfileRefDTO { Id = profileId, UserId = claimsUser.IdUser });
             if (response.Error?.Type == ErrorType.ProfileNotFound || !response.IsSuccess || response.Value is null)
             {
@@ -124,6 +120,15 @@ namespace MyHub.Controllers
             return Ok(ApiResponse.Ok("Profile removido com sucesso"));
         }
 
+        [HttpPut("update-profile/{profileId}")]
+        public async Task<IActionResult> UpdateProfile(Guid profileId, [FromBody] ProfileUpdateDTO profileUpdateDTO)
+        {
+            var response = _profileManagerService.UpdateProfile(profileId, profileUpdateDTO);
+
+
+            return Ok();
+        }
+ 
         [HttpGet("list-profiles")]
         public IActionResult ListProfiles()
         {
