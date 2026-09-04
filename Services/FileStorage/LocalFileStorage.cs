@@ -1,15 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using MyHub.Data;
+using MyHub.Extensions;
+using MyHub.Shared;
+using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 
 namespace MyHub.Services.FileStorage
 {
     public class LocalFileStorage : IFileStorage
     {
+
+        private readonly ApplicationDbContext _context;
         private readonly static string basePath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "LocalStorage");
 
-        public Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
+        public LocalFileStorage(ApplicationDbContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
+        }
+
+        public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
+        {
+            string filePath = Path.Combine(basePath, storageKey);
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException("File not found");
+            }
+
+            await using var stream = new FileStream(
+                filePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.None,
+                bufferSize: 1,
+                options: FileOptions.DeleteOnClose | FileOptions.Asynchronous);
         }
 
         public Task<Stream> DownloadAsync(string storageKey, CancellationToken cancellationToken = default)
@@ -21,24 +44,32 @@ namespace MyHub.Services.FileStorage
 
         public async Task<string> UploadAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default)
         {
-            //Already contains extension
-            var filePath = Path.Combine(basePath, fileName);
-            var fileDestination = File.Create(filePath);
+            string extension = MimeTypeExtension.GetExtensionFromMimeType(contentType)
+                ?? throw new FormatException("Content type not valid for operation");
 
-            var buffer = new byte[4096];
-            int bytesRead = 0;
+            var currDateString = DateTime.Now.ToString("yyyy/MM/dd");
+            var absoluteFolderPath = Path.Combine(basePath, currDateString);
+
+            if (!Directory.Exists(absoluteFolderPath))
+            {
+                Directory.CreateDirectory(absoluteFolderPath);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid()}_{fileName}{extension}";
+
+            var storageKey = Path.Combine(currDateString, uniqueFileName);
+            var absoluteFilePath = Path.Combine(basePath, storageKey);
+
             try
             {
-                while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
-                {
-                    await fileDestination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-                }
+                await using var fileDestination = File.Create(absoluteFilePath); 
+                await stream.CopyToAsync(fileDestination, cancellationToken);
             }
-            catch(Exception e)
+            catch (Exception ex)
             {
-                return await Task<string>.FromResult("");
+                throw new IOException("Occurred a problem during writing of file", ex);
             }
-            return await Task<string>.FromResult(fileName);
+            return storageKey;
         }
     }
 }

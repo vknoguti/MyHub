@@ -1,4 +1,6 @@
-﻿namespace MyHub.Services.FileStorage
+﻿using MyHub.Shared;
+
+namespace MyHub.Services.FileStorage
 {
     public interface IFileStorage
     {

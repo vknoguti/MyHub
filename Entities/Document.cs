@@ -11,14 +11,18 @@ namespace MyHub.Entities
         public Guid ProfileId { get; set; } = default!;
 
         [Required]
-        public string DocumentType { get; set; } = default!;
+        public string ContentType { get; set; } = default!;
 
         [Required]
-        public string FileURL { get; set; } = default!;
+        public string StorageKey { get; set; } = default!;
 
         [Required]
         public string FileName { get; set; } = default!;
 
+        [Required]
+        public long FileSizeBytes { get; set; } 
+
+        [Required]
         public DateTimeOffset UploadedAt { get; set; } = default!;
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

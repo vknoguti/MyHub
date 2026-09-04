@@ -77,22 +77,22 @@ namespace MyHub.Controllers
             var claims = User;
             if (claims is null)
             {
-                return Unauthorized(ApiResponse.Fail("Usuário não autenticado."));
+                return Unauthorized(ApiResponse.Fail("User not authenticated."));
             }
 
             var claimsUser = _tokenService.GetClaimsUserDTO(claims) ?? claims.ToClaimsUserDTO();
             if (claimsUser is null)
             {
-                return Unauthorized(ApiResponse.Fail("Não foi possível identificar o usuário autenticado."));
+                return Unauthorized(ApiResponse.Fail("Could not match authenticated user"));
             }
 
             var response = await _profileManagerService.GetProfile(new ProfileRefDTO { Id = profileId, UserId = claimsUser.IdUser });
             if (response.Error?.Type == ErrorType.ProfileNotFound || !response.IsSuccess || response.Value is null)
             {
-                return NotFound(ApiResponse.Fail("Perfil não encontrado."));
+                return NotFound(ApiResponse.Fail("User profile not found"));
             }
 
-            return Ok(ApiResponse<ProfileResponseDetailedDTO>.Ok(response.Value, "Perfil recuperado com sucesso."));
+            return Ok(ApiResponse<ProfileResponseDetailedDTO>.Ok(response.Value, "Profile retrieved sucessfull"));
         }
 
         //ADICIONAR AQUI AUTORIZAÇÃO DO TIPO ADMIN
@@ -103,30 +103,33 @@ namespace MyHub.Controllers
             var claims = User;
             if (claims is null)
             {
-                return Unauthorized(ApiResponse.Fail("Usuário não autenticado."));
+                return Unauthorized(ApiResponse.Fail("User not authenticated."));
             }
             
             var response = await _profileManagerService.DeleteProfile(ProfileId);
             if (response.Error?.Type == ErrorType.ProfileNotFound)
             {
-                return NotFound(ApiResponse.Fail("Profile não encontrado"));
+                return NotFound(ApiResponse.Fail("Profile not found"));
             }
 
             if(response.Error?.Type == ErrorType.FailedDatabaseUpdate)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse.Fail("Ocorreu um erro inesperado"));
+                return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse.Fail("Occurred an unexpected error"));
             }
 
-            return Ok(ApiResponse.Ok("Profile removido com sucesso"));
+            return Ok(ApiResponse.Ok("Profile removed successfuly"));
         }
 
         [HttpPut("update-profile/{profileId}")]
         public async Task<IActionResult> UpdateProfile(Guid profileId, [FromBody] ProfileUpdateDTO profileUpdateDTO)
         {
-            var response = _profileManagerService.UpdateProfile(profileId, profileUpdateDTO);
+            var response = await _profileManagerService.UpdateProfile(profileId, profileUpdateDTO);
+            if(response.Error?.Type == ErrorType.ProfileNotFound)
+            {
+                return BadRequest(ApiResponse.Fail("Profile not found"));
+            }
 
-
-            return Ok();
+            return Ok(ApiResponse<ProfileResponseDTO>.Ok(response.Value!, "Profile updated"));
         }
  
         [HttpGet("list-profiles")]

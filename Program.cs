@@ -7,6 +7,7 @@ using MyHub.Services.Token;
 using MyHub.Services.Authentication;
 using MyHub.Services.Profile;
 using MyHub.Services.FileStorage;
+using MyHub.Services.Document;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,10 +24,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-
 builder.Services.AddScoped<ProfileManagerService>();
 
-builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
+}
+builder.Services.AddScoped<DocumentService>();
+
 
 builder.Services
     .ConfigureSqlContext(builder.Configuration, builder.Environment)

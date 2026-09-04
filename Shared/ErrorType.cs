@@ -40,7 +40,10 @@ namespace MyHub.Shared
         [Description("Profile Not Found")]
         ProfileNotFound,
 
-
+        
+        
+        [Description("Document Upload Fail")]
+        UploadDocumentFailed,
 
 
         [Description("Invalid username or password")]
